@@ -1,0 +1,30 @@
+Traceback (most recent call last):
+  File "D:\teti project\bank-app\backend\run_seed.py", line 3, in <module>
+    import seed_admin
+  File "D:\teti project\bank-app\backend\seed_admin.py", line 1, in <module>
+    from database import SessionLocal
+  File "D:\teti project\bank-app\backend\database.py", line 2, in <module>
+    from sqlalchemy import create_engine
+  File "D:\teti project\bank-app\backend\.venv\Lib\site-packages\sqlalchemy\__init__.py", line 13, in <module>
+    from .engine import AdaptedConnection as AdaptedConnection
+  File "D:\teti project\bank-app\backend\.venv\Lib\site-packages\sqlalchemy\engine\__init__.py", line 18, in <module>
+    from . import events as events
+  File "D:\teti project\bank-app\backend\.venv\Lib\site-packages\sqlalchemy\engine\events.py", line 19, in <module>
+    from .base import Connection
+  File "D:\teti project\bank-app\backend\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 30, in <module>
+    from .interfaces import BindTyping
+  File "D:\teti project\bank-app\backend\.venv\Lib\site-packages\sqlalchemy\engine\interfaces.py", line 38, in <module>
+    from ..sql.compiler import Compiled as Compiled
+  File "D:\teti project\bank-app\backend\.venv\Lib\site-packages\sqlalchemy\sql\__init__.py", line 14, in <module>
+    from .compiler import COLLECT_CARTESIAN_PRODUCTS as COLLECT_CARTESIAN_PRODUCTS
+  File "D:\teti project\bank-app\backend\.venv\Lib\site-packages\sqlalchemy\sql\compiler.py", line 615, in <module>
+    class InsertmanyvaluesSentinelOpts(FastIntFlag):
+    ...<14 lines>...
+        RENDER_SELECT_COL_CASTS = 64
+  File "D:\teti project\bank-app\backend\.venv\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 1663, in __init__
+    sym = symbol(k, canonical=v)
+  File "D:\teti project\bank-app\backend\.venv\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 1635, in __new__
+    raise TypeError(
+    ...<2 lines>...
+    )
+TypeError: Can't replace canonical symbol for '__firstlineno__' with new int value 615

@@ -1,0 +1,42 @@
+Traceback (most recent call last):
+  File "D:\teti project\bank-app\backend\test.py", line 5, in <module>
+    import main
+  File "D:\teti project\bank-app\backend\main.py", line 1, in <module>
+    from fastapi import FastAPI, Depends, HTTPException, status
+  File "D:\teti project\bank-app\backend\.venv\Lib\site-packages\fastapi\__init__.py", line 7, in <module>
+    from .applications import FastAPI as FastAPI
+  File "D:\teti project\bank-app\backend\.venv\Lib\site-packages\fastapi\applications.py", line 16, in <module>
+    from fastapi import routing
+  File "D:\teti project\bank-app\backend\.venv\Lib\site-packages\fastapi\routing.py", line 24, in <module>
+    from fastapi.dependencies.models import Dependant
+  File "D:\teti project\bank-app\backend\.venv\Lib\site-packages\fastapi\dependencies\models.py", line 3, in <module>
+    from fastapi.security.base import SecurityBase
+  File "D:\teti project\bank-app\backend\.venv\Lib\site-packages\fastapi\security\__init__.py", line 1, in <module>
+    from .api_key import APIKeyCookie as APIKeyCookie
+  File "D:\teti project\bank-app\backend\.venv\Lib\site-packages\fastapi\security\api_key.py", line 3, in <module>
+    from fastapi.openapi.models import APIKey, APIKeyIn
+  File "D:\teti project\bank-app\backend\.venv\Lib\site-packages\fastapi\openapi\models.py", line 28, in <module>
+    class Contact(BaseModel):
+    ...<5 lines>...
+            extra = "allow"
+  File "D:\teti project\bank-app\backend\.venv\Lib\site-packages\pydantic\main.py", line 221, in __new__
+    inferred = ModelField.infer(
+        name=var_name,
+    ...<3 lines>...
+        config=config,
+    )
+  File "D:\teti project\bank-app\backend\.venv\Lib\site-packages\pydantic\fields.py", line 506, in infer
+    return cls(
+        name=name,
+    ...<7 lines>...
+        field_info=field_info,
+    )
+  File "D:\teti project\bank-app\backend\.venv\Lib\site-packages\pydantic\fields.py", line 436, in __init__
+    self.prepare()
+    ~~~~~~~~~~~~^^
+  File "D:\teti project\bank-app\backend\.venv\Lib\site-packages\pydantic\fields.py", line 546, in prepare
+    self._set_default_and_type()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "D:\teti project\bank-app\backend\.venv\Lib\site-packages\pydantic\fields.py", line 578, in _set_default_and_type
+    raise errors_.ConfigError(f'unable to infer type for attribute "{self.name}"')
+pydantic.errors.ConfigError: unable to infer type for attribute "name"

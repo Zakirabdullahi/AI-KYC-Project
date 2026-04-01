@@ -1,0 +1,105 @@
+.authWrapper {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--bank-primary) 0%, var(--bank-secondary) 100%);
+    padding: 24px;
+}
+
+.authCard {
+    background: var(--bg-card);
+    width: 100%;
+    max-width: 440px;
+    border-radius: var(--radius-lg);
+    padding: 40px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    text-align: center;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.logoIcon {
+    color: var(--bank-accent);
+}
+
+.logo h2 {
+    font-size: 28px;
+    color: var(--bank-primary);
+    margin: 0;
+    letter-spacing: -0.5px;
+}
+
+.subtitle {
+    color: var(--text-muted);
+    font-size: 15px;
+    margin-bottom: 32px;
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.inputGroup {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.inputIcon {
+    position: absolute;
+    left: 16px;
+    color: var(--text-muted);
+}
+
+.inputGroup input {
+    width: 100%;
+    padding: 14px 16px 14px 44px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    font-size: 15px;
+    transition: all 0.2s;
+    background: var(--bg-main);
+}
+
+.inputGroup input:focus {
+    background: white;
+    border-color: var(--bank-accent);
+    box-shadow: 0 0 0 3px rgba(0, 169, 224, 0.15);
+    outline: none;
+}
+
+.submitBtn {
+    margin-top: 8px;
+    padding: 16px;
+    font-size: 16px;
+    letter-spacing: 0.5px;
+}
+
+.submitBtn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.authFooter {
+    margin-top: 24px;
+    font-size: 14px;
+    color: var(--text-muted);
+}
+
+.authFooter a {
+    color: var(--bank-accent);
+    font-weight: 500;
+}
+
+.authFooter a:hover {
+    text-decoration: underline;
+}
