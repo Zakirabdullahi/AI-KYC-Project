@@ -1,10 +1,9 @@
 requests
 numpy
-torch
-torchvision
 Pillow
-opencv-python
-matplotlib
+opencv-python-headless
 Flask
 Flask-cors
 mediapipe
+scipy
+imutils

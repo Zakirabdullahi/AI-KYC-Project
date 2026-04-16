@@ -1,0 +1,40 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "bank-app/frontend/package.json",
+      "use": "@vercel/static-build",
+      "config": { "distDir": "dist" }
+    },
+    {
+      "src": "bank-app/backend/main.py",
+      "use": "@vercel/python"
+    },
+    {
+      "src": "kycsyst/api.py",
+      "use": "@vercel/python"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/kyc/(.*)",
+      "dest": "kycsyst/api.py"
+    },
+    {
+      "src": "/api/(.*)",
+      "dest": "bank-app/backend/main.py"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "bank-app/frontend/$1",
+      "continue": true
+    },
+    {
+        "handle": "filesystem"
+    },
+    {
+        "src": "/(.*)",
+        "dest": "bank-app/frontend/index.html"
+    }
+  ]
+}

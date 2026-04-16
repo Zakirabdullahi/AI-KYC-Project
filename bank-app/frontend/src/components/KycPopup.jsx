@@ -1,7 +1,7 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Camera, Upload, X, CheckCircle2, Loader2, Shield, Zap } from 'lucide-react';
 
-const LIVENESS_API = 'http://localhost:8001';
+const LIVENESS_API = import.meta.env.VITE_KYC_API_URL || 'http://localhost:8001';
 
 const COUNTRY_ID_TYPES = {
     KE: ['NATIONAL_ID', 'PASSPORT', 'ALIEN_CARD'],
