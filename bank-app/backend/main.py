@@ -1,3 +1,8 @@
+import sys
+import os
+# Ensure the current directory is in the path for Vercel
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
 from flask import Flask, request, jsonify
 import jwt
 import models, database, auth
