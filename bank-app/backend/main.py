@@ -10,6 +10,9 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
 
+# Create tables in the database (Safe for both SQLite and Postgres)
+models.Base.metadata.create_all(bind=database.engine)
+
 app.register_blueprint(banking_bp, url_prefix='/api/banking')
 app.register_blueprint(verify_bp, url_prefix='/api/verify')
 app.register_blueprint(admin_bp, url_prefix='/api/admin')
