@@ -66,6 +66,17 @@ def setup_database(db):
     except Exception as e:
         return jsonify({"detail": f"Setup failed: {str(e)}"}), 500
 
+@app.route("/api/debug", methods=["GET"])
+def debug():
+    """Diagnostic route to check environment setup."""
+    vars_to_check = ["POSTGRES_URL", "DATABASE_URL", "POSTGRES_PRISMA_URL", "VERCEL", "PORT"]
+    env_status = {var: ("SET" if os.getenv(var) else "MISSING") for var in vars_to_check}
+    
+    return jsonify({
+        "environment": env_status,
+        "database_url_masked": database.SQLALCHEMY_DATABASE_URL[:20] + "..." if database.SQLALCHEMY_DATABASE_URL else "NONE"
+    })
+
 @app.errorhandler(Exception)
 def handle_exception(e):
     # Log the detail for Vercel logs
