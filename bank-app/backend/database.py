@@ -4,7 +4,6 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
 # Try multiple environment variables common on Vercel, Railway, and Heroku
-# Vercel Postgres provides POSTGRES_URL and POSTGRES_PRISMA_URL
 SQLALCHEMY_DATABASE_URL = (
     os.getenv("POSTGRES_URL") or 
     os.getenv("POSTGRES_PRISMA_URL") or 
@@ -12,21 +11,27 @@ SQLALCHEMY_DATABASE_URL = (
     "sqlite:///./bank.db"
 )
 
-# If it's a postgres URL, we must ensure it uses the 'postgresql://' protocol for SQLAlchemy 1.4+
-if SQLALCHEMY_DATABASE_URL and SQLALCHEMY_DATABASE_URL.startswith("postgres://"):
-    SQLALCHEMY_DATABASE_URL = SQLALCHEMY_DATABASE_URL.replace("postgres://", "postgresql://", 1)
+# If it's a postgres URL, we must ensure it uses the 'postgresql+psycopg2://' driver
+if SQLALCHEMY_DATABASE_URL and SQLALCHEMY_DATABASE_URL.startswith("postgres"):
+    if SQLALCHEMY_DATABASE_URL.startswith("postgres://"):
+        SQLALCHEMY_DATABASE_URL = SQLALCHEMY_DATABASE_URL.replace("postgres://", "postgresql+psycopg2://", 1)
+    elif SQLALCHEMY_DATABASE_URL.startswith("postgresql://"):
+        SQLALCHEMY_DATABASE_URL = SQLALCHEMY_DATABASE_URL.replace("postgresql://", "postgresql+psycopg2://", 1)
 
-# Only create the database directory if we are using SQLite and not on Vercel
-if SQLALCHEMY_DATABASE_URL.startswith("sqlite") and not os.getenv("VERCEL"):
-    db_dir = os.path.dirname(SQLALCHEMY_DATABASE_URL.replace("sqlite:///", ""))
-    if db_dir and not os.path.exists(db_dir):
-        os.makedirs(db_dir, exist_ok=True)
+# Add SSL mode for Postgres if not present and on a cloud provider
+if "postgresql" in SQLALCHEMY_DATABASE_URL and "sslmode" not in SQLALCHEMY_DATABASE_URL:
+    if "?" in SQLALCHEMY_DATABASE_URL:
+        SQLALCHEMY_DATABASE_URL += "&sslmode=require"
+    else:
+        SQLALCHEMY_DATABASE_URL += "?sslmode=require"
 
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL, 
-    # check_same_thread is only needed for SQLite
+    pool_pre_ping=True,
+    # SSL is handled via the URL usually, but connect_args is a fallback
     connect_args={"check_same_thread": False} if SQLALCHEMY_DATABASE_URL.startswith("sqlite") else {}
 )
+
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()

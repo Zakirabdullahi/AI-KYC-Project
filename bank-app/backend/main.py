@@ -10,10 +10,9 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
 
-# Create tables in the database (Safe for both SQLite and Postgres)
-db_mode = "Postgres" if database.SQLALCHEMY_DATABASE_URL.startswith("postgres") else "SQLite"
-print(f"--- STARTUP: Initializing {db_mode} database ---")
-models.Base.metadata.create_all(bind=database.engine)
+# Table creation is now handled by /api/setup to avoid startup crashes if DB is unreachable
+print(f"--- STARTUP: Horizon Bank API in {db_mode} mode ---")
+# models.Base.metadata.create_all(bind=database.engine) 
 
 app.register_blueprint(banking_bp, url_prefix='/api/banking')
 app.register_blueprint(verify_bp, url_prefix='/api/verify')
