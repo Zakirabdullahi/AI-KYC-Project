@@ -4,6 +4,7 @@ Uses MediaPipe for face landmark extraction (replaces MTCNN)
 and drives BlinkDetector, EmotionPredictor, FaceOrientationDetector.
 """
 import sys
+import os
 import cv2 as cv
 import numpy as np
 import base64
@@ -211,5 +212,6 @@ def health():
     return jsonify({"status": "ok", "mediapipe": MEDIAPIPE_OK})
 
 if __name__ == "__main__":
-    print("Starting KYC Liveness Microservice on port 8001...")
-    app.run(host="0.0.0.0", port=8001, debug=False, threaded=True)
+    port = int(os.environ.get("PORT", 8001))
+    print(f"Starting KYC Liveness Microservice on port {port}...")
+    app.run(host="0.0.0.0", port=port, debug=False, threaded=True)

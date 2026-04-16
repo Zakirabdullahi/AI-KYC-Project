@@ -25,6 +25,12 @@ app.register_blueprint(admin_bp, url_prefix='/api/admin')
 def health():
     return jsonify({"status": "ok", "system": "Horizon Bank API v2.0"})
 
+@app.errorhandler(Exception)
+def handle_exception(e):
+    if hasattr(e, 'code'):
+        return jsonify({"detail": str(e.description)}), e.code
+    return jsonify({"detail": f"Internal Server Error: {str(e)}"}), 500
+
 # ── Auth ─────────────────────────────────────────────────────────────────────────
 
 @app.route("/api/auth/register", methods=["POST"])
