@@ -11,6 +11,8 @@ app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
 
 # Create tables in the database (Safe for both SQLite and Postgres)
+db_mode = "Postgres" if database.SQLALCHEMY_DATABASE_URL.startswith("postgres") else "SQLite"
+print(f"--- STARTUP: Initializing {db_mode} database ---")
 models.Base.metadata.create_all(bind=database.engine)
 
 app.register_blueprint(banking_bp, url_prefix='/api/banking')
