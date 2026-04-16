@@ -19,14 +19,58 @@ app.register_blueprint(banking_bp, url_prefix='/api/banking')
 app.register_blueprint(verify_bp, url_prefix='/api/verify')
 app.register_blueprint(admin_bp, url_prefix='/api/admin')
 
-# ── Health ──────────────────────────────────────────────────────────────────────
+from sqlalchemy import text
+import uuid
 
 @app.route("/health", methods=["GET"])
-def health():
-    return jsonify({"status": "ok", "system": "Horizon Bank API v2.0"})
+@auth.wrap_db
+def health(db):
+    db_status = "Connected"
+    try:
+        db.execute(text("SELECT 1"))
+    except Exception as e:
+        db_status = f"Disconnected: {str(e)}"
+    
+    return jsonify({
+        "status": "ok", 
+        "system": "Horizon Bank API v2.0",
+        "database": db_status,
+        "mode": db_mode
+    })
+
+@app.route("/api/setup", methods=["GET"])
+@auth.wrap_db
+def setup_database(db):
+    """One-time route to ensure tables exist and admin user is created."""
+    try:
+        models.Base.metadata.create_all(bind=database.engine)
+        
+        # Check if admin exists
+        admin = db.query(models.User).filter(models.User.role == "admin").first()
+        if not admin:
+            admin_pwd = "horizon_admin_2026"
+            new_admin = models.User(
+                full_name="System Administrator",
+                email="admin@horizon.com",
+                hashed_password=auth.get_password_hash(admin_pwd),
+                role="admin",
+                verification_status="verified"
+            )
+            db.add(new_admin)
+            db.commit()
+            return jsonify({
+                "message": "Database initialized and admin account created.",
+                "admin_email": "admin@horizon.com",
+                "admin_password": admin_pwd
+            })
+        return jsonify({"message": "Database already initialized. Admin exists."})
+    except Exception as e:
+        return jsonify({"detail": f"Setup failed: {str(e)}"}), 500
 
 @app.errorhandler(Exception)
 def handle_exception(e):
+    # Log the detail for Vercel logs
+    print(f"ERROR: {str(e)}")
     if hasattr(e, 'code'):
         return jsonify({"detail": str(e.description)}), e.code
     return jsonify({"detail": f"Internal Server Error: {str(e)}"}), 500
