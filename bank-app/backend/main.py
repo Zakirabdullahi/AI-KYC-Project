@@ -11,6 +11,7 @@ app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
 
 # Table creation is now handled by /api/setup to avoid startup crashes if DB is unreachable
+db_mode = "Postgres" if database.SQLALCHEMY_DATABASE_URL.startswith("postgres") else "SQLite"
 print(f"--- STARTUP: Horizon Bank API in {db_mode} mode ---")
 # models.Base.metadata.create_all(bind=database.engine) 
 
