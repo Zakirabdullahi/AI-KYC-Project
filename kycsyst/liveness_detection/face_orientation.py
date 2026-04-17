@@ -51,7 +51,7 @@ class FaceOrientationDetector:
         deviation = (nose_x - face_center_x) / eye_distance if eye_distance > 0 else 0
         
         # Determine orientation based on nose position
-        threshold = 0.15  # Threshold for orientation detection
+        threshold = 0.12  # Threshold for orientation detection
         
         if deviation > threshold:
             return "right"  # Nose is to the right, face turned left

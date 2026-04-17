@@ -73,6 +73,7 @@ export default function KycPopup({ onClose, onSubmit }) {
     ];
     const [capturedFrames, setCapturedFrames] = useState({ left: null, right: null, smile: null });
     const [submitting, setSubmitting] = useState(false);
+    const [isVerifying, setIsVerifying] = useState(false);
 
     const videoRef = useRef(null);
     const streamRef = useRef(null);
@@ -131,11 +132,13 @@ export default function KycPopup({ onClose, onSubmit }) {
             ctx.drawImage(videoRef.current, 0, 0);
             const frame = canvasRef.current.toDataURL('image/jpeg', 0.7);
 
+            setIsVerifying(true);
             fetch(`${LIVENESS_API}/api/liveness/verify`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ frame, challenge: currentChallenge.id })
             }).then(res => res.json()).then(data => {
+                setIsVerifying(false);
                 if (data.success) {
                     setCapturedFrames(prev => ({ ...prev, [currentChallenge.id]: frame }));
                     if (currentIndex < SEQUENCE.length - 1) {
@@ -151,6 +154,7 @@ export default function KycPopup({ onClose, onSubmit }) {
                     }
                 }
             }).catch(() => {
+                setIsVerifying(false);
                 // Ignore network blips, retry next frame
             });
 
@@ -162,7 +166,7 @@ export default function KycPopup({ onClose, onSubmit }) {
     useEffect(() => {
         if (livenessStatus === 'challenge') {
             if (intervalRef.current) clearInterval(intervalRef.current);
-            intervalRef.current = setInterval(captureAndVerify, 500); // every 500ms
+            intervalRef.current = setInterval(captureAndVerify, 300); // reduced from 500ms for faster feel
         }
         return () => {
             if (intervalRef.current) clearInterval(intervalRef.current);
@@ -296,8 +300,9 @@ export default function KycPopup({ onClose, onSubmit }) {
                                             <div key={i} style={{ width: 8, height: 8, borderRadius: '50%', background: i < seqIndex ? '#68d391' : i === seqIndex ? '#63b3ed' : '#4a5568', transition: 'background 0.3s' }} />
                                         ))}
                                     </div>
-                                    <p style={{ color: '#90cdf4', margin: '4px 0 0', fontSize: '12px', textAlign: 'center' }}>
-                                        Step {seqIndex + 1} of 3: Python AI is analyzing your expressions...
+                                    <p style={{ color: '#90cdf4', margin: '4px 0 0', fontSize: '12px', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+                                        {isVerifying && <Loader2 size={10} style={{ animation: 'spin 1s linear infinite' }} />}
+                                        {isVerifying ? 'Real-time AI Analysis...' : 'Waiting for movement...'}
                                     </p>
                                 </div>
                             )}

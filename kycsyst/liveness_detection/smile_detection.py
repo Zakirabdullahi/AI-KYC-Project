@@ -212,7 +212,7 @@ class SmileDetector:
         smiles = smile_cascade.detectMultiScale(
             roi_gray,
             scaleFactor=1.7,
-            minNeighbors=22,   # High value reduces false positives
+            minNeighbors=10,   # Reduced from 22 for better sensitivity
             minSize=(25, 15),
         )
 

@@ -43,6 +43,12 @@ emotion_predictor = EmotionPredictor(device="cpu")
 face_orientation_detector = FaceOrientationDetector()
 print("Liveness detection modules loaded.")
 
+# ── Haar Cascades (Initialized once globally for speed) ───────────────────────
+face_cascade = cv.CascadeClassifier(cv.data.haarcascades + "haarcascade_frontalface_default.xml")
+smile_cascade = cv.CascadeClassifier(cv.data.haarcascades + "haarcascade_smile.xml")
+profile_cascade = cv.CascadeClassifier(cv.data.haarcascades + "haarcascade_profileface.xml")
+eye_cascade = cv.CascadeClassifier(cv.data.haarcascades + "haarcascade_eye.xml")
+
 # ── Challenge helpers ─────────────────────────────────────────────────────────
 def random_challenge():
     challenges = ["smile", "left", "right", "blink", "nod"]
@@ -94,26 +100,17 @@ def extract_5pt_landmarks(rgb_frame):
 
 def detect_smile_opencv(bgr_frame):
     gray = cv.cvtColor(bgr_frame, cv.COLOR_BGR2GRAY)
-    face_cascade = cv.CascadeClassifier(cv.data.haarcascades + "haarcascade_frontalface_default.xml")
-    smile_cascade = cv.CascadeClassifier(cv.data.haarcascades + "haarcascade_smile.xml")
     faces = face_cascade.detectMultiScale(gray, 1.3, 5)
     for (x, y, fw, fh) in faces:
         roi_gray = gray[y + fh//2:y+fh, x:x+fw]
-        smiles = smile_cascade.detectMultiScale(roi_gray, 1.7, 22, minSize=(25, 15))
+        # Reduced minNeighbors from 22 to 10 for better responsiveness
+        smiles = smile_cascade.detectMultiScale(roi_gray, 1.7, 10, minSize=(25, 15))
         if len(smiles):
             return True
     return False
 
 def detect_profile_opencv(bgr_frame, direction="left"):
     gray = cv.cvtColor(bgr_frame, cv.COLOR_BGR2GRAY)
-    profile_cascade = cv.CascadeClassifier(cv.data.haarcascades + "haarcascade_profileface.xml")
-    
-    # haarcascade_profileface detects faces looking to the RIGHT HALF OF IMAGE (i.e. patient looking left).
-    # If direction is "left", the user turns their head to their left.
-    # To the camera, they are looking to the user's right (camera's left).
-    # Actually, haarcascade_profileface natively detects faces pointing to the right side of the image.
-    # User turning LEFT -> Face points to camera's RIGHT side of image -> natively detected.
-    # User turning RIGHT -> Face points to camera's LEFT side of image -> needs flip.
     if direction == "right":
         gray = cv.flip(gray, 1)
         
@@ -123,9 +120,6 @@ def detect_profile_opencv(bgr_frame, direction="left"):
 def detect_blink_opencv(bgr_frame):
     # Stateless heuristic: Face is visible but eyes are NOT visible.
     gray = cv.cvtColor(bgr_frame, cv.COLOR_BGR2GRAY)
-    face_cascade = cv.CascadeClassifier(cv.data.haarcascades + "haarcascade_frontalface_default.xml")
-    eye_cascade = cv.CascadeClassifier(cv.data.haarcascades + "haarcascade_eye.xml")
-    
     faces = face_cascade.detectMultiScale(gray, 1.3, 5, minSize=(80, 80))
     for (x, y, w, h) in faces:
         roi_gray = gray[y:y+h//2, x:x+w]
@@ -135,10 +129,8 @@ def detect_blink_opencv(bgr_frame):
     return False
 
 def detect_nod_opencv(bgr_frame):
-    # Stateless heuristic: Face is looking down or up, often causing 
-    # frontalface to fail but profile or just simple position bounding box displacement
+    # Stateless heuristic: Face is looking down or up
     gray = cv.cvtColor(bgr_frame, cv.COLOR_BGR2GRAY)
-    face_cascade = cv.CascadeClassifier(cv.data.haarcascades + "haarcascade_frontalface_default.xml")
     faces = face_cascade.detectMultiScale(gray, 1.3, 5)
     frame_h = gray.shape[0]
     
