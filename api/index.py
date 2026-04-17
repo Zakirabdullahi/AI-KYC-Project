@@ -17,34 +17,37 @@ try:
     from banking import banking_bp
     from verification import verify_bp
     from admin import admin_bp
+    
+    app = Flask(__name__)
+    CORS(app, resources={r"/*": {"origins": "*"}})
+    
+    # Check mode
+    db_mode = "Postgres" if database.SQLALCHEMY_DATABASE_URL.startswith("postgresql") else "SQLite"
+    print(f"--- STARTUP: Horizon Bank API in {db_mode} mode ---")
+
 except Exception as e:
     DEBUG_ERROR = traceback.format_exc()
-    print("--- FATAL IMPORT ERROR ---")
+    print("--- FATAL IMPORT OR STARTUP ERROR ---")
     print(DEBUG_ERROR)
-    # Define a minimal app to report the error via HTTP if imports fail
     from flask import Flask, jsonify
     app = Flask(__name__)
     @app.route("/api/debug", methods=["GET"])
     def debug_error():
-        return jsonify({"detail": "Import Error", "traceback": DEBUG_ERROR}), 500
+        # Mask potentially sensitive data in traceback
+        safe_trace = DEBUG_ERROR.replace(os.getenv("POSTGRES_URL", "---"), "POSTGRES_URL_HIDDEN")
+        return jsonify({"detail": "Critical Startup Error", "traceback": safe_trace}), 500
     @app.route("/", defaults={"path": ""})
     @app.route("/<path:path>")
     def catch_all(path):
-        return jsonify({"detail": "Import Error", "traceback": DEBUG_ERROR}), 500
-    # Re-raise to ensure the builder also sees it
-    # raise e 
+        return jsonify({"detail": "Startup Error", "traceback": "Check /api/debug for details"}), 500
+    # Stop further execution to prevent double-app definition issues
+    # But Flask requires the 'app' variable to be available at the top level
+    db_mode = "Error"
 
-app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*"}})
-
-# Table creation is now handled by /api/setup to avoid startup crashes if DB is unreachable
-db_mode = "Postgres" if database.SQLALCHEMY_DATABASE_URL.startswith("postgres") else "SQLite"
-print(f"--- STARTUP: Horizon Bank API in {db_mode} mode ---")
-# models.Base.metadata.create_all(bind=database.engine) 
-
-app.register_blueprint(banking_bp, url_prefix='/api/banking')
-app.register_blueprint(verify_bp, url_prefix='/api/verify')
-app.register_blueprint(admin_bp, url_prefix='/api/admin')
+if db_mode != "Error":
+    app.register_blueprint(banking_bp, url_prefix='/api/banking')
+    app.register_blueprint(verify_bp, url_prefix='/api/verify')
+    app.register_blueprint(admin_bp, url_prefix='/api/admin')
 
 from sqlalchemy import text
 import uuid

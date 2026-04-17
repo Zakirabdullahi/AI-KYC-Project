@@ -25,16 +25,17 @@ if SQLALCHEMY_DATABASE_URL.startswith("postgres://"):
 elif SQLALCHEMY_DATABASE_URL.startswith("postgresql://"):
     SQLALCHEMY_DATABASE_URL = SQLALCHEMY_DATABASE_URL.replace("postgresql://", "postgresql+psycopg2://", 1)
 
-# Ensure SSL is enabled for cloud Postgres
+# Ensure SSL is enabled for cloud Postgres (Neon requirement)
 connect_args = {}
 if "postgresql" in SQLALCHEMY_DATABASE_URL:
+    # Neon and most cloud providers require SSL
     connect_args["sslmode"] = "require"
-    # Append to URL just in case the driver prefers it there
-    if "sslmode" not in SQLALCHEMY_DATABASE_URL:
-        if "?" in SQLALCHEMY_DATABASE_URL:
-            SQLALCHEMY_DATABASE_URL += "&sslmode=require"
-        else:
-            SQLALCHEMY_DATABASE_URL += "?sslmode=require"
+    
+    # Check if we already have a query string
+    if "?" not in SQLALCHEMY_DATABASE_URL:
+        SQLALCHEMY_DATABASE_URL += "?sslmode=require"
+    elif "sslmode" not in SQLALCHEMY_DATABASE_URL:
+        SQLALCHEMY_DATABASE_URL += "&sslmode=require"
 else:
     connect_args["check_same_thread"] = False
 
