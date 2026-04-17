@@ -3,4 +3,8 @@ Flask-Cors==4.0.1
 sqlalchemy
 PyJWT==2.8.0
 psycopg2-binary
+reportlab
+requests
+python-dotenv
+cryptography
 gunicorn
