@@ -215,7 +215,7 @@ def delete_user_kyc_docs(user_id, db):
 
     db.commit()
 
-    return jsonify({"message": "KYC documents permanently deleted."}), 200)
+    return jsonify({"message": "KYC documents permanently deleted."}), 200
 
 @admin_bp.route("/users/<int:user_id>/role", methods=["PATCH"])
 @auth.require_admin
