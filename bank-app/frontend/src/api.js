@@ -57,6 +57,7 @@ export const decideVerification = (userId, decision) => api.post(`/admin/verify-
 export const fetchAllTransactions = (type = '') => api.get(`/admin/transactions?type=${type}`);
 export const adminResetPassword = (userId, newPassword) => api.post(`/admin/users/${userId}/reset-password`, { new_password: newPassword });
 export const deleteUserKycDocs = (userId) => api.delete(`/admin/users/${userId}/kyc-docs`);
+export const adminUpdateUserRole = (userId, role) => api.patch(`/admin/users/${userId}/role`, { role });
 
 export const logout = () => {
     localStorage.removeItem('bank_token');

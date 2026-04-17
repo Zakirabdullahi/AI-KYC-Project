@@ -4,7 +4,8 @@ import toast from 'react-hot-toast';
 import {
     fetchAdminStats, fetchAllUsers, fetchUserDetails, fetchUserKycDocs,
     adminAdjustBalance, fetchPendingVerifications, decideVerification,
-    fetchAllTransactions, adminResetPassword, deleteUserKycDocs, logout
+    fetchAllTransactions, adminResetPassword, deleteUserKycDocs,
+    adminUpdateUserRole, logout
 } from '../api';
 import {
     ShieldCheck, LogOut, CheckCircle, XCircle, Users, Activity,
@@ -30,6 +31,7 @@ function UserModal({ user, onClose, onDecision }) {
     const [pwdBusy, setPwdBusy] = useState(false);
     const [zoomedImage, setZoomedImage] = useState(null);
     const [deleteBusy, setDeleteBusy] = useState(false);
+    const [roleBusy, setRoleBusy] = useState(false);
 
     const loadDocs = async () => {
         try {
@@ -104,6 +106,27 @@ function UserModal({ user, onClose, onDecision }) {
                         <button onClick={() => onDecision(user.id, 'rejected')} style={{ background: '#9b2c2c', color: 'white', padding: '8px 14px', borderRadius: 6, fontSize: 13, display: 'flex', alignItems: 'center', gap: 6 }}><XCircle size={14} /> Reject</button>
                     </>}
                     <button onClick={() => setResettingPwd(!resettingPwd)} style={{ background: '#2c5282', color: 'white', padding: '8px 14px', borderRadius: 6, fontSize: 13, display: 'flex', alignItems: 'center', gap: 6 }}><Key size={14} /> Reset Password</button>
+                    <button
+                        disabled={roleBusy}
+                        onClick={async () => {
+                            const newRole = user.role === 'admin' ? 'customer' : 'admin';
+                            if (window.confirm(`Are you sure you want to ${newRole === 'admin' ? 'PROMOTE to Admin' : 'DEMOTE to Customer'}?`)) {
+                                setRoleBusy(true);
+                                try {
+                                    const res = await adminUpdateUserRole(user.id, newRole);
+                                    toast.success(res.data.message);
+                                    onDecision(user.id, user.verification_status); // Trigger refresh
+                                } catch (e) {
+                                    toast.error(e.response?.data?.detail || 'Role update failed');
+                                } finally {
+                                    setRoleBusy(false);
+                                }
+                            }
+                        }}
+                        style={{ background: user.role === 'admin' ? '#718096' : '#805ad5', color: 'white', padding: '8px 14px', borderRadius: 6, fontSize: 13, fontWeight: 600, opacity: roleBusy ? 0.5 : 1 }}
+                    >
+                        {user.role === 'admin' ? 'Revoke Admin' : 'Promote to Admin'}
+                    </button>
                 </div>
             </div>
 

@@ -215,7 +215,35 @@ def delete_user_kyc_docs(user_id, db):
 
     db.commit()
 
-    return jsonify({"message": "KYC documents permanently deleted."}), 200
+    return jsonify({"message": "KYC documents permanently deleted."}), 200)
+
+@admin_bp.route("/users/<int:user_id>/role", methods=["PATCH"])
+@auth.require_admin
+def update_user_role(user_id, db):
+    """Change a user's role (promote to admin or demote to customer)."""
+    data = request.json
+    new_role = data.get("role")
+    if new_role not in ["admin", "customer"]:
+        return jsonify({"detail": "Invalid role."}), 400
+        
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not user:
+        return jsonify({"detail": "User not found."}), 404
+        
+    # Prevent the last administrator from demoting themselves (optional safety check)
+    current_admin = request.current_user
+    if user.id == current_admin.id and new_role != "admin":
+        return jsonify({"detail": "You cannot demote yourself. Another admin must do this."}), 400
+
+    user.role = new_role
+    db.commit()
+    
+    notif_msg = f"Your account role has been updated to {new_role.upper()}."
+    notif = models.Notification(user_id=user.id, message=notif_msg, category="info")
+    db.add(notif)
+    db.commit()
+    
+    return jsonify({"message": f"User {user.email} is now an {new_role}."}), 200
 
 
 @admin_bp.route("/transactions", methods=["GET"])
