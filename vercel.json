@@ -7,14 +7,14 @@
       "config": { "distDir": "dist" }
     },
     {
-      "src": "bank-app/backend/main.py",
+      "src": "api/index.py",
       "use": "@vercel/python"
     }
   ],
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "bank-app/backend/main.py"
+      "dest": "api/index.py"
     },
     {
       "src": "/(.*)",
@@ -22,11 +22,11 @@
       "continue": true
     },
     {
-        "handle": "filesystem"
+      "handle": "filesystem"
     },
     {
-        "src": "/(.*)",
-        "dest": "bank-app/frontend/index.html"
+      "src": "/(.*)",
+      "dest": "bank-app/frontend/index.html"
     }
   ]
 }
