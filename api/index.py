@@ -1,13 +1,38 @@
+import sys
 import os
-from flask import Flask, request, jsonify
-import jwt
-import models
-import database
-import auth
-from banking import banking_bp
-from verification import verify_bp
-from admin import admin_bp
-from flask_cors import CORS
+import traceback
+
+# Essential for Vercel: Add current directory to path so sibling modules are found
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+DEBUG_ERROR = None
+
+try:
+    from flask import Flask, request, jsonify
+    from flask_cors import CORS
+    import jwt
+    import models
+    import database
+    import auth
+    from banking import banking_bp
+    from verification import verify_bp
+    from admin import admin_bp
+except Exception as e:
+    DEBUG_ERROR = traceback.format_exc()
+    print("--- FATAL IMPORT ERROR ---")
+    print(DEBUG_ERROR)
+    # Define a minimal app to report the error via HTTP if imports fail
+    from flask import Flask, jsonify
+    app = Flask(__name__)
+    @app.route("/api/debug", methods=["GET"])
+    def debug_error():
+        return jsonify({"detail": "Import Error", "traceback": DEBUG_ERROR}), 500
+    @app.route("/", defaults={"path": ""})
+    @app.route("/<path:path>")
+    def catch_all(path):
+        return jsonify({"detail": "Import Error", "traceback": DEBUG_ERROR}), 500
+    # Re-raise to ensure the builder also sees it
+    # raise e 
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
