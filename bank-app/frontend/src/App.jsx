@@ -19,7 +19,12 @@ const ProtectedRoute = ({ children, requireAdmin = false }) => {
     }
     fetchMe()
       .then(res => setAuth({ ok: true, role: res.data.role }))
-      .catch(() => {
+      .catch((err) => {
+        const detail = err.response?.data?.detail || 'Session invalid';
+        // Only show toast if there was actually a token (prevents toast on fresh load)
+        if (token) {
+          toast.error(`Security Check Failed: ${detail}`);
+        }
         localStorage.removeItem('bank_token');
         setAuth({ ok: false });
       });

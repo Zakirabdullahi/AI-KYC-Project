@@ -1,5 +1,5 @@
 import hashlib
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import jwt
 from flask import request, jsonify
 from functools import wraps
@@ -15,10 +15,11 @@ def get_password_hash(password):
 
 def create_access_token(data: dict, expires_delta=None):
     to_encode = data.copy()
+    now = datetime.now(timezone.utc)
     if expires_delta:
-        expire = datetime.utcnow() + expires_delta
+        expire = now + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(minutes=15)
+        expire = now + timedelta(minutes=15)
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
@@ -37,19 +38,39 @@ def require_auth(f):
     @wraps(f)
     @wrap_db
     def decorated(*args, db=None, **kwargs):
-        auth_header = request.headers.get("Authorization")
-        if not auth_header or not auth_header.startswith("Bearer "):
-            return jsonify({"detail": "Unauthorized"}), 401
-        token = auth_header.split(" ")[1]
+        token = request.headers.get("Authorization")
+        if not token:
+            return jsonify({"detail": "Missing authorization header"}), 401
+        
         try:
-            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+            if token.startswith("Bearer "):
+                token = token.split(" ")[1]
+            
+            # Use leeway to account for clock drift on Vercel
+            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM], leeway=60)
             email = payload.get("sub")
+            if not email:
+                print("AUTH ERROR: Token payload missing 'sub'")
+                return jsonify({"detail": "Invalid token payload"}), 401
+                
             user = db.query(models.User).filter(models.User.email == email).first()
             if not user:
+                print(f"AUTH ERROR: User not found for email {email}")
                 return jsonify({"detail": "User not found"}), 401
             request.current_user = user
-        except:
-            return jsonify({"detail": "Invalid token"}), 401
+        except jwt.ExpiredSignatureError:
+            msg = "Token expired (clock skew or 24h limit reached)"
+            print(f"AUTH ERROR: {msg}")
+            return jsonify({"detail": msg}), 401
+        except jwt.InvalidTokenError as e:
+            msg = f"Invalid token: {str(e)}"
+            print(f"AUTH ERROR: {msg}")
+            return jsonify({"detail": msg}), 401
+        except Exception as e:
+            msg = f"Authentication failed: {str(e)}"
+            print(f"AUTH ERROR: {msg}")
+            return jsonify({"detail": msg}), 401
+
         return f(*args, db=db, **kwargs)
     return decorated
 

@@ -69,6 +69,7 @@ export default function Login() {
 
                 <div className={styles.authFooter}>
                     <p>New to Horizon Bank? <Link to="/register">Create an account</Link></p>
+                    <div style={{ fontSize: 10, color: '#a0aec0', marginTop: 12, opacity: 0.6 }}>Deployed Version: v2.4 (Resilience Patch)</div>
                 </div>
             </div>
         </div>

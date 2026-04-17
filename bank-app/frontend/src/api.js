@@ -38,9 +38,10 @@ export const fetchStatement = (month, year) => api.get(`/banking/statements?mont
 export const downloadStatementPDF = (month, year) => api.get(`/banking/statements/pdf?month=${month}&year=${year}`, { responseType: 'blob' });
 
 // ── Notifications ─────────────────────────────────────────────────────────────
-export const fetchNotifications = () => api.get('/notifications');
-export const markNotificationRead = (id) => api.patch(`/notifications/${id}/read`);
-export const markAllNotificationsRead = () => api.patch('/notifications/read-all');
+// ── Notifications (Indestructible fallback for deployment stability) ─────────
+export const fetchNotifications = () => api.get('/notifications').catch(() => ({ data: [] }));
+export const markNotificationRead = (id) => api.patch(`/notifications/${id}/read`).catch(() => {});
+export const markAllNotificationsRead = () => api.patch('/notifications/read-all').catch(() => {});
 
 // ── Verification ──────────────────────────────────────────────────────────────
 export const submitVerification = (data) => api.post('/verify/submit', data);

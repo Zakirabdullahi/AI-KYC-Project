@@ -12,17 +12,29 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
 
+# Move critical imports to the top after sys.path update
+import models
+import database
+import auth
+from banking import banking_bp
+from verification import verify_bp
+from admin import admin_bp
+
+# Dummy notifications to prevent 404 errors
+@app.route("/api/notifications", methods=["GET"])
+@auth.require_auth
+def get_notifications(db):
+    return jsonify([])
+
+@app.route("/api/notifications/read-all", methods=["PATCH"])
+@auth.require_auth
+def read_all_notifications(db):
+    return jsonify({"status": "ok"})
+
 DEBUG_ERROR = None
 db_mode = "Unknown"
 
 try:
-    import models
-    import database
-    import auth
-    from banking import banking_bp
-    from verification import verify_bp
-    from admin import admin_bp
-    
     app.register_blueprint(banking_bp, url_prefix='/api/banking')
     app.register_blueprint(verify_bp, url_prefix='/api/verify')
     app.register_blueprint(admin_bp, url_prefix='/api/admin')

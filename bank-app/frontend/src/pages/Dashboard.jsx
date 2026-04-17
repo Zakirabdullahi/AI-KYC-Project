@@ -632,22 +632,47 @@ export default function Dashboard() {
 
     const loadData = useCallback(async () => {
         try {
-            const [meRes, accRes, txRes, loanRes, notifRes] = await Promise.all([
-                fetchMe(), fetchAccounts(), fetchTransactions(), fetchLoans(), fetchNotifications()
-            ]);
+            // Core Identity call - if this fails with 401, we logout
+            const meRes = await fetchMe();
+            setUser(meRes.data);
             
-            // Fix session crossover if an admin opens the customer dashboard
             if (meRes.data.role === 'admin') {
                 navigate('/secure-staff-access');
                 return;
             }
 
-            setUser(meRes.data);
-            setAccounts(accRes.data);
-            setTransactions(txRes.data);
-            setLoans(loanRes.data);
-            setNotifications(notifRes.data);
-        } catch { toast.error('Session expired.'); navigate('/login'); }
+            // Secondary data calls - we handle these individually so one failure doesn't crash the dash
+            const fetchData = async (fn, setter, name) => {
+                try {
+                    const res = await fn();
+                    setter(res.data);
+                } catch (e) {
+                    console.error(`Failed to fetch ${name}:`, e);
+                    if (e.response?.status === 401) throw e; // Pass 401 up to logout
+                    toast.error(`Portal: Could not load ${name} (using cached/empty)`);
+                }
+            };
+
+            await Promise.all([
+                fetchData(fetchAccounts, setAccounts, 'accounts'),
+                fetchData(fetchTransactions, setTransactions, 'transactions'),
+                fetchData(fetchLoans, setLoans, 'loans'),
+                fetchData(fetchNotifications, setNotifications, 'notifications')
+            ]);
+        } catch (err) {
+            const detail = err.response?.data?.detail || 'Connection error';
+            const status = err.response?.status;
+            
+            if (status === 401) {
+                toast.error('Session expired. Please log in again.');
+                logout();
+                navigate('/login');
+            } else {
+                toast.error(`Portal error: ${detail}`);
+                // Don't necessarily navigate to login for non-401 errors
+                // unless it's a critical startup failure.
+            }
+        }
         finally { setLoading(false); }
     }, [navigate]);
 
@@ -664,7 +689,12 @@ export default function Dashboard() {
         } catch (e) { toast.error(e.response?.data?.detail || 'Verification failed.'); }
     };
 
-    if (loading) return <div style={{ padding: 50, textAlign: 'center', color: 'var(--bank-primary)', fontWeight: 600 }}>Loading Horizon Secure Portal...</div>;
+    if (loading) return (
+        <div style={{ padding: 50, textAlign: 'center', color: 'var(--bank-primary)', fontWeight: 600 }}>
+            <div>Loading Horizon Secure Portal...</div>
+            <div style={{ fontSize: 10, color: '#a0aec0', marginTop: 10 }}>Frontend v2.2 | API check...</div>
+        </div>
+    );
 
     const isVerified = user?.verification_status === 'verified';
     const unreadCount = notifications.filter(n => !n.is_read).length;
